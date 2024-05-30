@@ -3,10 +3,10 @@ import serial
 
 # Constants for colors
 DEEP_BLUE = 0x00008B00  # 0xRRGGBBWW, no white component for deep blue
-PALE_BLUE = 0x87CEEBA0
+PALE_BLUE = 0x87CEEB
 ORANGE = 0xFFA50000
 YELLOW = 0xFFFF0000
-WHITE = 0xFFFFFF00
+WHITE = 0x00000030
 
 def hex_to_rgbw(hex_value):
     return (
@@ -27,6 +27,7 @@ def setLeds(leds):
             print(command)
             ser.write(command.encode('utf-8'))
 
+
 def interpolate_color(color1, color2, factor):
     """ Interpolate between two colors """
     r1, g1, b1, w1 = hex_to_rgbw(color1)
@@ -39,20 +40,23 @@ def interpolate_color(color1, color2, factor):
 
 def generate_sunrise_effect(center, numLED, step, total_steps):
     leds = [DEEP_BLUE] * numLED
-    max_distance = max(center, numLED - center)
-    
+    max_distance = center
+
     for i in range(numLED):
-        distance = abs(center - i)
-        factor = distance / max_distance
+        distance_from_center = abs(center - i)
+        factor = distance_from_center / max_distance
         transition_factor = step / total_steps
-        
-        if factor < 0.33:  # Closest to the center
-            color = interpolate_color(DEEP_BLUE, WHITE, transition_factor * (1 - factor / 0.33))
-        elif factor < 0.66:  # Middle range
-            color = interpolate_color(DEEP_BLUE, ORANGE, transition_factor * (1 - (factor - 0.33) / 0.33))
-        else:  # Farthest from the center
-            color = interpolate_color(DEEP_BLUE, PALE_BLUE, transition_factor * (1 - (factor - 0.66) / 0.34))
-        
+
+        if distance_from_center <= max_distance:
+            if factor < 0.33:  # Closest to the center
+                color = interpolate_color(DEEP_BLUE, YELLOW, transition_factor * (1 - factor / 0.33))
+            elif factor < 0.66:  # Middle range
+                color = interpolate_color(DEEP_BLUE, PALE_BLUE, transition_factor * (1 - (factor - 0.33) / 0.33))
+            else:  # Farthest from the center
+                color = interpolate_color(DEEP_BLUE, DEEP_BLUE, transition_factor * (1 - (factor - 0.66) / 0.34))
+        else:
+            color = DEEP_BLUE
+
         leds[i] = color
 
     setLeds(leds)
@@ -71,5 +75,5 @@ def sunrise_effect(center, numLED, night_steps=50, sunrise_steps=100, delay=0.1)
 # Example usage:
 if __name__ == "__main__":
     numLED = 60
-    center = 30
+    center = numLED // 2
     sunrise_effect(center, numLED)
