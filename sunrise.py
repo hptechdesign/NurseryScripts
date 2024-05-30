@@ -26,7 +26,7 @@ def setLeds(leds):
             command = f'0x{r:02X}{g:02X}{b:02X}{w:02X}'
             print(command)
             ser.write(command.encode('utf-8'))
-            ser.write(b'\n')  # Assuming each LED color is sent on a new line
+
 
 def interpolate_color(color1, color2, factor):
     """ Interpolate between two colors """
@@ -57,7 +57,7 @@ def generate_sunrise_effect(center, numLED):
 
     setLeds(leds)
 
-def sunrise_effect(center, numLED, steps=100, delay=0.5):
+def sunrise_effect(center, numLED, steps=100, delay=0.1):
     for step in range(steps):
         generate_sunrise_effect(center, numLED)
         time.sleep(delay)
